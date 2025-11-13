@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx expo start:*)",
+      "Bash(npx tsc:*)",
+      "Bash(find:*)",
+      "Bash(taskkill:*)",
+      "Bash(npx expo install:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

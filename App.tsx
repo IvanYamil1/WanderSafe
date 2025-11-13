@@ -1,20 +1,47 @@
+/**
+ * WanderSafe - Smart Tourism Assistant App (Expo Version)
+ * Main Application Entry Point
+ */
+
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { LogBox } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import AppNavigator from './src/navigation/AppNavigator';
+import { AuthService } from './src/services/supabase/auth';
+import { useAuthStore } from './src/store/useAuthStore';
 
-export default function App() {
+// Ignore specific warnings
+LogBox.ignoreLogs([
+  'Non-serializable values were found in the navigation state',
+]);
+
+const App: React.FC = () => {
+  const { loadUser } = useAuthStore();
+
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: authListener } = AuthService.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          await loadUser();
+        } else if (event === 'SIGNED_OUT') {
+          // User state will be cleared by signOut action
+        }
+      },
+    );
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <StatusBar style="light" />
+      <AppNavigator />
+    </GestureHandlerRootView>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default App;
