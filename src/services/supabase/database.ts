@@ -10,6 +10,9 @@ import {
   Route,
   Location,
 } from 'types';
+import { MOCK_PLACES } from '../mock/mockPlaces';
+import { LocationService } from '../location/LocationService';
+import { PlacesCacheService } from '../cache/PlacesCacheService';
 
 export class DatabaseService {
   // ========== USER PROFILE ==========
@@ -94,19 +97,108 @@ export class DatabaseService {
     radiusMeters: number = 5000,
     limit: number = 50,
   ): Promise<Place[]> {
-    // Using PostGIS for geospatial queries
-    const { data, error } = await supabase.rpc('get_nearby_places', {
-      lat: location.latitude,
-      long: location.longitude,
-      radius_meters: radiusMeters,
-      max_results: limit,
-    });
+    try {
+      // Use PlacesCacheService which handles:
+      // 1. Memory cache
+      // 2. Database cache
+      // 3. Google Places API
+      // 4. Mock data fallback
+      const places = await PlacesCacheService.getNearbyPlaces(
+        location,
+        radiusMeters
+      );
 
-    if (error) throw error;
-    return data || [];
+      return places.slice(0, limit);
+    } catch (error) {
+      // Final fallback to mock data
+      console.log('Using mock data for nearby places');
+      return this.getMockNearbyPlaces(location, radiusMeters, limit);
+    }
   }
 
-  static async searchPlaces(searchTerm: string): Promise<Place[]> {
+  /**
+   * Get nearby places directly from database (no cache service)
+   * Used by PlacesCacheService to avoid circular dependency
+   */
+  static async getNearbyPlacesFromDatabase(
+    location: Location,
+    radiusMeters: number = 5000,
+    limit: number = 100,
+  ): Promise<Place[]> {
+    try {
+      // Use PostGIS function to find nearby places
+      const { data, error } = await supabase.rpc('get_nearby_places', {
+        lat: location.latitude,
+        long: location.longitude,
+        radius_meters: radiusMeters,
+      });
+
+      if (error) {
+        console.log('Database query error, trying alternative method:', error.message);
+        // Fallback: get all places and filter in-memory
+        const { data: allPlaces, error: allError } = await supabase
+          .from('places')
+          .select('*')
+          .eq('is_verified', true)
+          .limit(1000);
+
+        if (allError) throw allError;
+
+        // Filter by distance manually
+        const nearby = (allPlaces || [])
+          .map(place => ({
+            place,
+            distance: LocationService.calculateDistance(
+              location,
+              { latitude: place.latitude, longitude: place.longitude }
+            ),
+          }))
+          .filter(item => item.distance <= radiusMeters)
+          .sort((a, b) => a.distance - b.distance)
+          .slice(0, limit)
+          .map(item => item.place);
+
+        return nearby;
+      }
+
+      return (data || []).slice(0, limit);
+    } catch (error) {
+      console.error('Error in getNearbyPlacesFromDatabase:', error);
+      return [];
+    }
+  }
+
+  private static getMockNearbyPlaces(
+    location: Location,
+    radiusMeters: number,
+    limit: number,
+  ): Place[] {
+    // Filter mock places by distance
+    const placesWithDistance = MOCK_PLACES.map(place => ({
+      place,
+      distance: LocationService.calculateDistance(
+        location,
+        { latitude: place.latitude, longitude: place.longitude }
+      ),
+    }));
+
+    // Filter by radius and sort by distance
+    const nearby = placesWithDistance
+      .filter(item => item.distance <= radiusMeters)
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, limit)
+      .map(item => item.place);
+
+    return nearby;
+  }
+
+  static async searchPlaces(searchTerm: string, location?: Location): Promise<Place[]> {
+    if (location) {
+      // Use PlacesCacheService for search with location
+      return await PlacesCacheService.searchPlaces(searchTerm, location);
+    }
+
+    // Fallback to database search
     const { data, error } = await supabase
       .from('places')
       .select('*')
@@ -116,6 +208,32 @@ export class DatabaseService {
 
     if (error) throw error;
     return data || [];
+  }
+
+  static async createPlace(place: Partial<Place>): Promise<Place> {
+    const { data, error } = await supabase
+      .from('places')
+      .insert(place)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async updatePlace(
+    placeId: string,
+    updates: Partial<Place>
+  ): Promise<Place> {
+    const { data, error } = await supabase
+      .from('places')
+      .update(updates)
+      .eq('id', placeId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 
   // ========== REVIEWS ==========

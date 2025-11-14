@@ -12,9 +12,18 @@ export interface User {
 export interface UserProfile {
   id: string;
   user_id: string;
+  full_name?: string;
+  bio?: string;
   interests: TouristInterest[];
   preferred_budget: BudgetLevel;
   language: 'es' | 'en';
+  travel_style?: TravelStyle;
+  activity_level?: ActivityLevel;
+  dietary_preferences?: DietaryPreference[];
+  preferred_times?: PreferredTime[];
+  max_distance?: number; // in kilometers
+  transportation_modes?: TransportMode[];
+  accessibility_needs?: AccessibilityNeed[];
   created_at: string;
   updated_at: string;
 }
@@ -32,6 +41,30 @@ export type TouristInterest =
   | 'relax';
 
 export type BudgetLevel = 'bajo' | 'medio' | 'alto' | 'premium';
+
+export type TravelStyle = 'solo' | 'pareja' | 'familia' | 'amigos' | 'grupo';
+
+export type ActivityLevel = 'relajado' | 'moderado' | 'activo' | 'intenso';
+
+export type DietaryPreference =
+  | 'vegetariano'
+  | 'vegano'
+  | 'sin_gluten'
+  | 'halal'
+  | 'kosher'
+  | 'sin_lactosa'
+  | 'ninguna';
+
+export type PreferredTime = 'mañana' | 'tarde' | 'noche' | 'madrugada';
+
+export type TransportMode = 'caminando' | 'bicicleta' | 'transporte_publico' | 'auto' | 'taxi';
+
+export type AccessibilityNeed =
+  | 'silla_ruedas'
+  | 'movilidad_reducida'
+  | 'visual'
+  | 'auditiva'
+  | 'ninguna';
 
 export type PlaceCategory =
   | 'restaurante'
@@ -58,7 +91,7 @@ export interface Place {
   longitude: number;
   address: string;
   opening_hours?: OpeningHours;
-  average_visit_duration: number; // in minutes
+  average_visit_duration?: number; // in minutes
   price_level: BudgetLevel;
   rating: number;
   review_count: number;
@@ -66,9 +99,12 @@ export interface Place {
   phone?: string;
   website?: string;
   tags: string[];
-  is_verified: boolean;
-  created_at: string;
-  updated_at: string;
+  safety_rating?: number; // Safety rating (1-5)
+  is_verified?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  distance?: number; // Distance from user in meters
+  user_ratings_total?: number; // Total number of ratings from Google
 }
 
 export interface OpeningHours {

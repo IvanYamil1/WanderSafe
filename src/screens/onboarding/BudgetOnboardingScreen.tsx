@@ -68,7 +68,7 @@ const BudgetOnboardingScreen: React.FC<BudgetOnboardingScreenProps> = ({
 
   const handleContinue = () => {
     if (selectedBudget) {
-      navigation.navigate('CompleteOnboarding', {
+      navigation.navigate('TravelStyleOnboarding', {
         interests,
         budget: selectedBudget,
       });
@@ -87,6 +87,8 @@ const BudgetOnboardingScreen: React.FC<BudgetOnboardingScreenProps> = ({
         <View style={styles.progressContainer}>
           <View style={[styles.progressDot, styles.progressDotCompleted]} />
           <View style={[styles.progressDot, styles.progressDotActive]} />
+          <View style={styles.progressDot} />
+          <View style={styles.progressDot} />
           <View style={styles.progressDot} />
         </View>
       </View>

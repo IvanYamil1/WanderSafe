@@ -48,6 +48,7 @@ module.exports = {
       supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
       googleMapsApiKeyAndroid: process.env.GOOGLE_MAPS_API_KEY_ANDROID,
       googleMapsApiKeyIos: process.env.GOOGLE_MAPS_API_KEY_IOS,
+      googlePlacesApiKey: process.env.GOOGLE_PLACES_API_KEY,
       googleWebClientId: process.env.GOOGLE_WEB_CLIENT_ID,
       oneSignalAppId: process.env.ONESIGNAL_APP_ID,
       apiBaseUrl: process.env.API_BASE_URL,

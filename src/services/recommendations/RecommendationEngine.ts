@@ -120,24 +120,25 @@ export class RecommendationEngine {
   ): number {
     let score = 0;
 
-    // Interest match score (0-40 points)
+    // Interest match score (0-30 points)
     const interestScore = this.calculateInterestScore(place, userProfile);
-    score += interestScore * 40;
+    score += interestScore * 30;
 
-    // Rating score (0-25 points)
+    // Rating score (0-20 points)
     const ratingScore = place.rating / 5;
-    score += ratingScore * 25;
+    score += ratingScore * 20;
 
-    // Popularity score based on reviews (0-15 points)
+    // Popularity score based on reviews (0-10 points)
     const popularityScore = Math.min(place.review_count / 100, 1);
-    score += popularityScore * 15;
+    score += popularityScore * 10;
 
     // Distance score (0-10 points) - closer is better
+    const maxDistance = (userProfile.max_distance || 10) * 1000; // Convert km to meters
     const distance = LocationService.calculateDistance(
       userLocation,
       { latitude: place.latitude, longitude: place.longitude },
     );
-    const distanceScore = Math.max(0, 1 - distance / 5000); // Max distance 5km
+    const distanceScore = Math.max(0, 1 - distance / maxDistance);
     score += distanceScore * 10;
 
     // Budget match score (0-10 points)
@@ -147,6 +148,22 @@ export class RecommendationEngine {
     const budgetDiff = Math.abs(userBudgetIndex - placeBudgetIndex);
     const budgetScore = Math.max(0, 1 - budgetDiff / 3);
     score += budgetScore * 10;
+
+    // Activity level match score (0-5 points)
+    const activityScore = this.calculateActivityLevelScore(place, userProfile);
+    score += activityScore * 5;
+
+    // Travel style match score (0-5 points)
+    const travelStyleScore = this.calculateTravelStyleScore(place, userProfile);
+    score += travelStyleScore * 5;
+
+    // Dietary preferences match score (0-5 points)
+    const dietaryScore = this.calculateDietaryScore(place, userProfile);
+    score += dietaryScore * 5;
+
+    // Time preference match score (0-5 points)
+    const timeScore = this.calculateTimePreferenceScore(place, userProfile);
+    score += timeScore * 5;
 
     return score;
   }
@@ -180,6 +197,134 @@ export class RecommendationEngine {
     }
 
     return Math.min(matchCount / userProfile.interests.length, 1);
+  }
+
+  /**
+   * Calculate activity level match score
+   */
+  private static calculateActivityLevelScore(
+    place: Place,
+    userProfile: UserProfile,
+  ): number {
+    if (!userProfile.activity_level) return 0.5;
+
+    const activityCategories = {
+      relajado: ['cafe', 'restaurante', 'museo', 'galeria', 'spa'],
+      moderado: ['parque', 'mercado', 'centro_cultural', 'tienda'],
+      activo: ['parque', 'mirador', 'tour'],
+      intenso: ['aventura', 'deportes', 'trekking'],
+    };
+
+    const relevantCategories = activityCategories[userProfile.activity_level] || [];
+    return relevantCategories.includes(place.category) ? 1 : 0.3;
+  }
+
+  /**
+   * Calculate travel style match score
+   */
+  private static calculateTravelStyleScore(
+    place: Place,
+    userProfile: UserProfile,
+  ): number {
+    if (!userProfile.travel_style) return 0.5;
+
+    // Check tags for family-friendly, romantic, etc.
+    const styleTags = {
+      solo: ['tranquilo', 'individual', 'trabajo'],
+      pareja: ['romantico', 'pareja', 'cena'],
+      familia: ['familia', 'ninos', 'kids-friendly'],
+      amigos: ['grupo', 'social', 'diversion'],
+      grupo: ['grupos', 'eventos', 'capacidad'],
+    };
+
+    const relevantTags = styleTags[userProfile.travel_style] || [];
+    if (!place.tags) return 0.5;
+
+    const hasMatch = relevantTags.some(tag =>
+      place.tags!.some(placeTag => placeTag.toLowerCase().includes(tag))
+    );
+
+    return hasMatch ? 1 : 0.5;
+  }
+
+  /**
+   * Calculate dietary preferences match score
+   */
+  private static calculateDietaryScore(
+    place: Place,
+    userProfile: UserProfile,
+  ): number {
+    // Only relevant for restaurants/cafes
+    if (!['restaurante', 'cafe', 'bar'].includes(place.category)) {
+      return 1; // Not applicable, give full score
+    }
+
+    if (
+      !userProfile.dietary_preferences ||
+      userProfile.dietary_preferences.length === 0 ||
+      userProfile.dietary_preferences.includes('ninguna')
+    ) {
+      return 1;
+    }
+
+    if (!place.tags) return 0.5;
+
+    const dietaryTags = {
+      vegetariano: ['vegetariano', 'veggie', 'vegetarian'],
+      vegano: ['vegano', 'vegan'],
+      sin_gluten: ['sin gluten', 'gluten-free', 'celiac'],
+      halal: ['halal'],
+      kosher: ['kosher'],
+      sin_lactosa: ['sin lactosa', 'lactose-free'],
+    };
+
+    let matchCount = 0;
+    for (const pref of userProfile.dietary_preferences) {
+      if (pref === 'ninguna') continue;
+      const relevantTags = dietaryTags[pref] || [];
+      const hasMatch = relevantTags.some(tag =>
+        place.tags!.some(placeTag => placeTag.toLowerCase().includes(tag))
+      );
+      if (hasMatch) matchCount++;
+    }
+
+    return userProfile.dietary_preferences.length > 0
+      ? matchCount / userProfile.dietary_preferences.filter(p => p !== 'ninguna').length
+      : 1;
+  }
+
+  /**
+   * Calculate time preference match score
+   */
+  private static calculateTimePreferenceScore(
+    place: Place,
+    userProfile: UserProfile,
+  ): number {
+    if (
+      !userProfile.preferred_times ||
+      userProfile.preferred_times.length === 0
+    ) {
+      return 1;
+    }
+
+    if (!place.opening_hours) return 0.7; // Neutral score if no hours info
+
+    const now = new Date();
+    const currentHour = now.getHours();
+
+    // Map current hour to time period
+    let currentPeriod: string;
+    if (currentHour >= 6 && currentHour < 12) currentPeriod = 'mañana';
+    else if (currentHour >= 12 && currentHour < 18) currentPeriod = 'tarde';
+    else if (currentHour >= 18 && currentHour < 24) currentPeriod = 'noche';
+    else currentPeriod = 'madrugada';
+
+    // Check if place is typically good for current preferred time
+    const isPreferredTime = userProfile.preferred_times.includes(
+      currentPeriod as any
+    );
+
+    return isPreferredTime ? 1 : 0.6;
   }
 
   /**

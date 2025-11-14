@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { Place, Location, RecommendationFilters } from 'types';
+import { Place, Location, RecommendationFilters, UserProfile } from 'types';
 import { DatabaseService } from '@services/supabase/database';
-import { RecommendationEngine } from '@services/recommendations/RecommendationEngine';
+import { EnhancedRecommendationEngine } from '@services/recommendations/EnhancedRecommendationEngine';
 import { useAuthStore } from './useAuthStore';
 import { useLocationStore } from './useLocationStore';
 
@@ -12,15 +12,19 @@ interface PlacesState {
   selectedPlace: Place | null;
   isLoading: boolean;
   error: string | null;
+  lastRecommendationUpdate: number | null;
+  hasLoadedOnce: boolean;
 
   // Actions
   loadPlaces: (filters?: any) => Promise<void>;
   loadRecommendations: (filters?: RecommendationFilters) => Promise<void>;
+  refreshRecommendations: (filters?: RecommendationFilters) => Promise<void>;
   searchPlaces: (query: string) => Promise<void>;
   getPlaceById: (placeId: string) => Promise<void>;
   getTrendingPlaces: () => Promise<void>;
   setSelectedPlace: (place: Place | null) => void;
   clearError: () => void;
+  clearCache: () => void;
 }
 
 export const usePlacesStore = create<PlacesState>((set, get) => ({
@@ -30,6 +34,8 @@ export const usePlacesStore = create<PlacesState>((set, get) => ({
   selectedPlace: null,
   isLoading: false,
   error: null,
+  lastRecommendationUpdate: null,
+  hasLoadedOnce: false,
 
   loadPlaces: async (filters?: any) => {
     try {
@@ -37,6 +43,7 @@ export const usePlacesStore = create<PlacesState>((set, get) => ({
       const places = await DatabaseService.getPlaces(filters);
       set({ places, isLoading: false });
     } catch (error: any) {
+      console.error('Error loading places:', error);
       set({
         error: error.message || 'Error al cargar lugares',
         isLoading: false,
@@ -46,32 +53,80 @@ export const usePlacesStore = create<PlacesState>((set, get) => ({
 
   loadRecommendations: async (filters?: RecommendationFilters) => {
     try {
-      set({ isLoading: true, error: null });
+      const { hasLoadedOnce } = get();
+
+      // Don't show loading spinner if we already have recommendations
+      if (!hasLoadedOnce) {
+        set({ isLoading: true, error: null });
+      }
 
       const { currentLocation } = useLocationStore.getState();
       const { profile } = useAuthStore.getState();
 
+      // Validate location
       if (!currentLocation) {
-        throw new Error('No se pudo obtener la ubicación actual');
+        console.warn('No location available, cannot load recommendations');
+        set({
+          error: 'Activa tu ubicación para ver recomendaciones',
+          isLoading: false,
+        });
+        return;
       }
 
+      // Validate profile - but provide defaults if missing
       if (!profile) {
-        throw new Error('No hay perfil de usuario');
+        console.warn('No user profile, using default recommendations');
+        // Continue with default profile instead of failing
       }
 
-      const recommendations = await RecommendationEngine.getRecommendations(
+      console.log('📍 Loading recommendations for location:', currentLocation);
+
+      const defaultProfile: UserProfile = {
+        id: 'default',
+        user_id: 'guest',
+        preferred_budget: 'medio',
+        language: 'es',
+        interests: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const recommendations = await EnhancedRecommendationEngine.getRecommendations(
         currentLocation,
-        profile,
+        profile || defaultProfile,
         filters,
       );
 
-      set({ recommendations, isLoading: false });
-    } catch (error: any) {
+      console.log(`✅ Loaded ${recommendations.length} recommendations`);
+
       set({
-        error: error.message || 'Error al cargar recomendaciones',
+        recommendations,
+        isLoading: false,
+        error: null,
+        lastRecommendationUpdate: Date.now(),
+        hasLoadedOnce: true,
+      });
+    } catch (error: any) {
+      console.error('❌ Error loading recommendations:', error);
+
+      // Don't fail completely - keep existing recommendations if any
+      const { recommendations } = get();
+      const errorMessage = recommendations.length > 0
+        ? 'No se pudieron actualizar las recomendaciones'
+        : 'No se pudieron cargar recomendaciones. Intenta de nuevo.';
+
+      set({
+        error: errorMessage,
         isLoading: false,
       });
     }
+  },
+
+  refreshRecommendations: async (filters?: RecommendationFilters) => {
+    console.log('🔄 Refreshing recommendations (clearing cache)...');
+    EnhancedRecommendationEngine.clearCache();
+    set({ hasLoadedOnce: false });
+    await get().loadRecommendations(filters);
   },
 
   searchPlaces: async (query: string) => {
@@ -106,17 +161,25 @@ export const usePlacesStore = create<PlacesState>((set, get) => ({
 
       const { currentLocation } = useLocationStore.getState();
       if (!currentLocation) {
-        throw new Error('No se pudo obtener la ubicación actual');
+        console.warn('No location for trending places');
+        set({
+          error: 'Activa tu ubicación para ver lugares populares',
+          isLoading: false,
+        });
+        return;
       }
 
-      const trending = await RecommendationEngine.getTrendingPlaces(
+      const trending = await EnhancedRecommendationEngine.getTrendingPlaces(
         currentLocation,
         10,
       );
-      set({ places: trending, isLoading: false });
+
+      console.log(`✅ Loaded ${trending.length} trending places`);
+      set({ places: trending, isLoading: false, error: null });
     } catch (error: any) {
+      console.error('Error loading trending places:', error);
       set({
-        error: error.message || 'Error al cargar lugares populares',
+        error: 'Error al cargar lugares populares',
         isLoading: false,
       });
     }
@@ -125,4 +188,10 @@ export const usePlacesStore = create<PlacesState>((set, get) => ({
   setSelectedPlace: (place: Place | null) => set({ selectedPlace: place }),
 
   clearError: () => set({ error: null }),
+
+  clearCache: () => {
+    EnhancedRecommendationEngine.clearCache();
+    set({ lastRecommendationUpdate: null, hasLoadedOnce: false });
+    console.log('🗑️ Places cache cleared');
+  },
 }));

@@ -12,7 +12,17 @@
       "Bash(cmd.exe //c taskkill //PID 10832 //F)",
       "Bash(rm:*)",
       "Bash(cmd.exe //c taskkill //PID 6708 //F)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(dir:*)",
+      "Bash(if [ -f .env ])",
+      "Bash(then echo \".env exists\")",
+      "Bash(else echo \".env does not exist\")",
+      "Bash(fi)",
+      "Bash(if [ -f .gitignore ])",
+      "Bash(then echo \".gitignore exists\")",
+      "Bash(else echo \".gitignore does not exist\")",
+      "Bash(test:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []

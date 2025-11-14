@@ -11,7 +11,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons as Icon } from '@expo/vector-icons';
 import { useAuthStore } from '@store/useAuthStore';
-import { TouristInterest, BudgetLevel } from 'types';
+import {
+  TouristInterest,
+  BudgetLevel,
+  TravelStyle,
+  ActivityLevel,
+  DietaryPreference,
+  PreferredTime,
+  TransportMode,
+  AccessibilityNeed,
+} from 'types';
 
 interface EditPreferencesScreenProps {
   navigation: any;
@@ -50,6 +59,54 @@ const BUDGETS: BudgetOption[] = [
   { id: 'premium', label: 'Premium', icon: 'star', color: '#FFD700' },
 ];
 
+const TRAVEL_STYLES: { id: TravelStyle; label: string; icon: keyof typeof Icon.glyphMap }[] = [
+  { id: 'solo', label: 'Solo', icon: 'person' },
+  { id: 'pareja', label: 'En Pareja', icon: 'heart' },
+  { id: 'familia', label: 'En Familia', icon: 'home' },
+  { id: 'amigos', label: 'Con Amigos', icon: 'people' },
+  { id: 'grupo', label: 'Grupos Grandes', icon: 'business' },
+];
+
+const ACTIVITY_LEVELS: { id: ActivityLevel; label: string; icon: keyof typeof Icon.glyphMap }[] = [
+  { id: 'relajado', label: 'Relajado', icon: 'cafe' },
+  { id: 'moderado', label: 'Moderado', icon: 'walk' },
+  { id: 'activo', label: 'Activo', icon: 'bicycle' },
+  { id: 'intenso', label: 'Intenso', icon: 'fitness' },
+];
+
+const DIETARY_PREFERENCES: { id: DietaryPreference; label: string; icon: keyof typeof Icon.glyphMap }[] = [
+  { id: 'vegetariano', label: 'Vegetariano', icon: 'leaf' },
+  { id: 'vegano', label: 'Vegano', icon: 'nutrition' },
+  { id: 'sin_gluten', label: 'Sin Gluten', icon: 'medical' },
+  { id: 'halal', label: 'Halal', icon: 'moon' },
+  { id: 'kosher', label: 'Kosher', icon: 'star' },
+  { id: 'sin_lactosa', label: 'Sin Lactosa', icon: 'water' },
+  { id: 'ninguna', label: 'Ninguna', icon: 'close-circle' },
+];
+
+const PREFERRED_TIMES: { id: PreferredTime; label: string; icon: keyof typeof Icon.glyphMap }[] = [
+  { id: 'mañana', label: 'Mañana', icon: 'sunny' },
+  { id: 'tarde', label: 'Tarde', icon: 'partly-sunny' },
+  { id: 'noche', label: 'Noche', icon: 'moon' },
+  { id: 'madrugada', label: 'Madrugada', icon: 'moon-outline' },
+];
+
+const TRANSPORT_MODES: { id: TransportMode; label: string; icon: keyof typeof Icon.glyphMap }[] = [
+  { id: 'caminando', label: 'Caminando', icon: 'walk' },
+  { id: 'bicicleta', label: 'Bicicleta', icon: 'bicycle' },
+  { id: 'transporte_publico', label: 'Transporte Público', icon: 'bus' },
+  { id: 'auto', label: 'Auto Propio', icon: 'car' },
+  { id: 'taxi', label: 'Taxi/Uber', icon: 'car-sport' },
+];
+
+const ACCESSIBILITY_NEEDS: { id: AccessibilityNeed; label: string; icon: keyof typeof Icon.glyphMap }[] = [
+  { id: 'silla_ruedas', label: 'Silla de Ruedas', icon: 'accessibility' },
+  { id: 'movilidad_reducida', label: 'Movilidad Reducida', icon: 'walk' },
+  { id: 'visual', label: 'Visual', icon: 'eye-off' },
+  { id: 'auditiva', label: 'Auditiva', icon: 'ear' },
+  { id: 'ninguna', label: 'Ninguna', icon: 'checkmark-circle' },
+];
+
 const EditPreferencesScreen: React.FC<EditPreferencesScreenProps> = ({ navigation }) => {
   const { profile, updateProfile } = useAuthStore();
   const [selectedInterests, setSelectedInterests] = useState<TouristInterest[]>(
@@ -58,6 +115,24 @@ const EditPreferencesScreen: React.FC<EditPreferencesScreenProps> = ({ navigatio
   const [selectedBudget, setSelectedBudget] = useState<BudgetLevel>(
     profile?.preferred_budget || 'medio'
   );
+  const [selectedTravelStyle, setSelectedTravelStyle] = useState<TravelStyle | undefined>(
+    profile?.travel_style
+  );
+  const [selectedActivityLevel, setSelectedActivityLevel] = useState<ActivityLevel | undefined>(
+    profile?.activity_level
+  );
+  const [selectedDietaryPreferences, setSelectedDietaryPreferences] = useState<DietaryPreference[]>(
+    profile?.dietary_preferences || []
+  );
+  const [selectedPreferredTimes, setSelectedPreferredTimes] = useState<PreferredTime[]>(
+    profile?.preferred_times || []
+  );
+  const [selectedTransportModes, setSelectedTransportModes] = useState<TransportMode[]>(
+    profile?.transportation_modes || []
+  );
+  const [selectedAccessibilityNeeds, setSelectedAccessibilityNeeds] = useState<AccessibilityNeed[]>(
+    profile?.accessibility_needs || []
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   const toggleInterest = (interest: TouristInterest) => {
@@ -65,6 +140,25 @@ const EditPreferencesScreen: React.FC<EditPreferencesScreenProps> = ({ navigatio
       setSelectedInterests(selectedInterests.filter(i => i !== interest));
     } else {
       setSelectedInterests([...selectedInterests, interest]);
+    }
+  };
+
+  const toggleMultiSelect = <T,>(
+    item: T,
+    currentList: T[],
+    setList: React.Dispatch<React.SetStateAction<T[]>>,
+    noneValue: T
+  ) => {
+    if (item === noneValue) {
+      setList([item]);
+    } else {
+      const filtered = currentList.filter((i) => i !== noneValue);
+      if (currentList.includes(item)) {
+        const newList = filtered.filter((i) => i !== item);
+        setList(newList.length === 0 ? [noneValue] : newList);
+      } else {
+        setList([...filtered, item]);
+      }
     }
   };
 
@@ -79,6 +173,12 @@ const EditPreferencesScreen: React.FC<EditPreferencesScreenProps> = ({ navigatio
       await updateProfile({
         interests: selectedInterests,
         preferred_budget: selectedBudget,
+        travel_style: selectedTravelStyle,
+        activity_level: selectedActivityLevel,
+        dietary_preferences: selectedDietaryPreferences,
+        preferred_times: selectedPreferredTimes,
+        transportation_modes: selectedTransportModes,
+        accessibility_needs: selectedAccessibilityNeeds,
       });
       Alert.alert(
         'Éxito',
@@ -196,6 +296,264 @@ const EditPreferencesScreen: React.FC<EditPreferencesScreenProps> = ({ navigatio
             })}
           </View>
         </View>
+
+        {/* Travel Style Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Estilo de Viaje</Text>
+          <Text style={styles.sectionSubtitle}>
+            ¿Cómo prefieres viajar?
+          </Text>
+
+          <View style={styles.optionsContainer}>
+            {TRAVEL_STYLES.map((style) => {
+              const isSelected = selectedTravelStyle === style.id;
+              return (
+                <TouchableOpacity
+                  key={style.id}
+                  style={[
+                    styles.optionChip,
+                    isSelected && styles.optionChipSelected,
+                  ]}
+                  onPress={() => setSelectedTravelStyle(style.id)}
+                >
+                  <Icon
+                    name={style.icon}
+                    size={20}
+                    color={isSelected ? '#FFFFFF' : '#007AFF'}
+                  />
+                  <Text
+                    style={[
+                      styles.optionChipText,
+                      isSelected && styles.optionChipTextSelected,
+                    ]}
+                  >
+                    {style.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Activity Level Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Nivel de Actividad</Text>
+          <Text style={styles.sectionSubtitle}>
+            ¿Cuál es tu nivel de energía preferido?
+          </Text>
+
+          <View style={styles.optionsContainer}>
+            {ACTIVITY_LEVELS.map((level) => {
+              const isSelected = selectedActivityLevel === level.id;
+              return (
+                <TouchableOpacity
+                  key={level.id}
+                  style={[
+                    styles.optionChip,
+                    isSelected && styles.optionChipSelected,
+                  ]}
+                  onPress={() => setSelectedActivityLevel(level.id)}
+                >
+                  <Icon
+                    name={level.icon}
+                    size={20}
+                    color={isSelected ? '#FFFFFF' : '#007AFF'}
+                  />
+                  <Text
+                    style={[
+                      styles.optionChipText,
+                      isSelected && styles.optionChipTextSelected,
+                    ]}
+                  >
+                    {level.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Dietary Preferences Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Preferencias Dietéticas</Text>
+          <Text style={styles.sectionSubtitle}>
+            Selecciona tus restricciones alimentarias
+          </Text>
+
+          <View style={styles.optionsContainer}>
+            {DIETARY_PREFERENCES.map((pref) => {
+              const isSelected = selectedDietaryPreferences.includes(pref.id);
+              return (
+                <TouchableOpacity
+                  key={pref.id}
+                  style={[
+                    styles.optionChip,
+                    isSelected && styles.optionChipSelected,
+                  ]}
+                  onPress={() =>
+                    toggleMultiSelect(
+                      pref.id,
+                      selectedDietaryPreferences,
+                      setSelectedDietaryPreferences,
+                      'ninguna' as DietaryPreference
+                    )
+                  }
+                >
+                  <Icon
+                    name={pref.icon}
+                    size={20}
+                    color={isSelected ? '#FFFFFF' : '#007AFF'}
+                  />
+                  <Text
+                    style={[
+                      styles.optionChipText,
+                      isSelected && styles.optionChipTextSelected,
+                    ]}
+                  >
+                    {pref.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Preferred Times Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Horarios Preferidos</Text>
+          <Text style={styles.sectionSubtitle}>
+            ¿Cuándo prefieres realizar actividades?
+          </Text>
+
+          <View style={styles.optionsContainer}>
+            {PREFERRED_TIMES.map((time) => {
+              const isSelected = selectedPreferredTimes.includes(time.id);
+              return (
+                <TouchableOpacity
+                  key={time.id}
+                  style={[
+                    styles.optionChip,
+                    isSelected && styles.optionChipSelected,
+                  ]}
+                  onPress={() => {
+                    if (isSelected) {
+                      setSelectedPreferredTimes(
+                        selectedPreferredTimes.filter((t) => t !== time.id)
+                      );
+                    } else {
+                      setSelectedPreferredTimes([...selectedPreferredTimes, time.id]);
+                    }
+                  }}
+                >
+                  <Icon
+                    name={time.icon}
+                    size={20}
+                    color={isSelected ? '#FFFFFF' : '#007AFF'}
+                  />
+                  <Text
+                    style={[
+                      styles.optionChipText,
+                      isSelected && styles.optionChipTextSelected,
+                    ]}
+                  >
+                    {time.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Transport Modes Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Modos de Transporte</Text>
+          <Text style={styles.sectionSubtitle}>
+            ¿Cómo te gusta moverte?
+          </Text>
+
+          <View style={styles.optionsContainer}>
+            {TRANSPORT_MODES.map((mode) => {
+              const isSelected = selectedTransportModes.includes(mode.id);
+              return (
+                <TouchableOpacity
+                  key={mode.id}
+                  style={[
+                    styles.optionChip,
+                    isSelected && styles.optionChipSelected,
+                  ]}
+                  onPress={() => {
+                    if (isSelected) {
+                      setSelectedTransportModes(
+                        selectedTransportModes.filter((m) => m !== mode.id)
+                      );
+                    } else {
+                      setSelectedTransportModes([...selectedTransportModes, mode.id]);
+                    }
+                  }}
+                >
+                  <Icon
+                    name={mode.icon}
+                    size={20}
+                    color={isSelected ? '#FFFFFF' : '#007AFF'}
+                  />
+                  <Text
+                    style={[
+                      styles.optionChipText,
+                      isSelected && styles.optionChipTextSelected,
+                    ]}
+                  >
+                    {mode.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Accessibility Needs Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Necesidades de Accesibilidad</Text>
+          <Text style={styles.sectionSubtitle}>
+            Ayúdanos a sugerir lugares accesibles
+          </Text>
+
+          <View style={styles.optionsContainer}>
+            {ACCESSIBILITY_NEEDS.map((need) => {
+              const isSelected = selectedAccessibilityNeeds.includes(need.id);
+              return (
+                <TouchableOpacity
+                  key={need.id}
+                  style={[
+                    styles.optionChip,
+                    isSelected && styles.optionChipSelected,
+                  ]}
+                  onPress={() =>
+                    toggleMultiSelect(
+                      need.id,
+                      selectedAccessibilityNeeds,
+                      setSelectedAccessibilityNeeds,
+                      'ninguna' as AccessibilityNeed
+                    )
+                  }
+                >
+                  <Icon
+                    name={need.icon}
+                    size={20}
+                    color={isSelected ? '#FFFFFF' : '#007AFF'}
+                  />
+                  <Text
+                    style={[
+                      styles.optionChipText,
+                      isSelected && styles.optionChipTextSelected,
+                    ]}
+                  >
+                    {need.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
       </ScrollView>
 
       <View style={styles.footer}>
@@ -268,6 +626,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
+  },
+  optionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  optionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#007AFF',
+  },
+  optionChipSelected: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  optionChipText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#007AFF',
+  },
+  optionChipTextSelected: {
+    color: '#FFFFFF',
   },
   interestChip: {
     flexDirection: 'row',

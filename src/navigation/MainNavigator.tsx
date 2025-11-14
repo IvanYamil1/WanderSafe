@@ -68,6 +68,35 @@ const ExploreStack: React.FC = () => {
   );
 };
 
+const FavoritesStack: React.FC = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="FavoritesMain"
+        component={FavoritesScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="PlaceDetails"
+        component={PlaceDetailsScreen}
+        options={{ title: 'Detalles del Lugar' }}
+      />
+    </Stack.Navigator>
+  );
+};
+
+const EventsStack: React.FC = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="EventsMain"
+        component={EventsScreen}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+};
+
 const ProfileStack: React.FC = () => {
   return (
     <Stack.Navigator>
@@ -136,12 +165,12 @@ const MainNavigator: React.FC = () => {
       />
       <Tab.Screen
         name="Favorites"
-        component={FavoritesScreen}
+        component={FavoritesStack}
         options={{ tabBarLabel: 'Favoritos' }}
       />
       <Tab.Screen
         name="Events"
-        component={EventsScreen}
+        component={EventsStack}
         options={{ tabBarLabel: 'Eventos' }}
       />
       <Tab.Screen

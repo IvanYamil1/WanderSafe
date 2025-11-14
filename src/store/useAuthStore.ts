@@ -61,29 +61,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signUp: async (email: string, password: string, fullName?: string) => {
     try {
       set({ isLoading: true, error: null });
-      const data = await AuthService.signUp(email, password, fullName);
+      await AuthService.signUp(email, password, fullName);
 
-      if (data.user) {
-        // Profile is automatically created by database trigger
-        // Wait a moment for the trigger to complete, then fetch the profile
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        const profile = await DatabaseService.getUserProfile(data.user.id);
-
-        set({
-          user: {
-            id: data.user.id,
-            email: data.user.email || '',
-            full_name: data.user.user_metadata?.full_name || fullName || data.user.email?.split('@')[0] || 'Usuario',
-            avatar_url: data.user.user_metadata?.avatar_url,
-            created_at: data.user.created_at,
-            updated_at: data.user.updated_at || data.user.created_at,
-          } as User,
-          profile,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-      }
+      // Don't authenticate the user automatically
+      // They need to verify their email first
+      // Profile will be created by database trigger when they verify
+      set({
+        isLoading: false,
+      });
     } catch (error: any) {
       set({
         error: error.message || 'Error al registrarse',

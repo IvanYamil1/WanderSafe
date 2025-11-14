@@ -118,6 +118,8 @@ const InterestsOnboardingScreen: React.FC<InterestsOnboardingScreenProps> = ({
           <View style={[styles.progressDot, styles.progressDotActive]} />
           <View style={styles.progressDot} />
           <View style={styles.progressDot} />
+          <View style={styles.progressDot} />
+          <View style={styles.progressDot} />
         </View>
       </View>
 

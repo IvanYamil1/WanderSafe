@@ -4,7 +4,9 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons as Icon } from '@expo/vector-icons';
 
@@ -18,58 +20,67 @@ const WelcomeOnboardingScreen: React.FC<WelcomeOnboardingScreenProps> = ({ navig
       colors={['#007AFF', '#0051D5']}
       style={styles.container}
     >
-      <View style={styles.content}>
-        <View style={styles.iconContainer}>
-          <Icon name="map" size={80} color="#FFFFFF" />
+      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+        <View style={styles.content}>
+          <View style={styles.iconContainer}>
+            <Image
+              source={require('../../../WanderSafe_Logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
+
+          <Text style={styles.title}>Bienvenido a WanderSafe</Text>
+          <Text style={styles.subtitle}>
+            Tu asistente inteligente de turismo
+          </Text>
+
+          <View style={styles.featuresContainer}>
+            <View style={styles.feature}>
+              <Icon name="location" size={24} color="#FFFFFF" />
+              <Text style={styles.featureText}>
+                Descubre lugares increíbles cerca de ti
+              </Text>
+            </View>
+
+            <View style={styles.feature}>
+              <Icon name="shield-checkmark" size={24} color="#FFFFFF" />
+              <Text style={styles.featureText}>
+                Información de seguridad en tiempo real
+              </Text>
+            </View>
+
+            <View style={styles.feature}>
+              <Icon name="sparkles" size={24} color="#FFFFFF" />
+              <Text style={styles.featureText}>
+                Recomendaciones personalizadas para ti
+              </Text>
+            </View>
+          </View>
         </View>
 
-        <Text style={styles.title}>Bienvenido a WanderSafe</Text>
-        <Text style={styles.subtitle}>
-          Tu asistente inteligente de turismo
-        </Text>
-
-        <View style={styles.featuresContainer}>
-          <View style={styles.feature}>
-            <Icon name="location" size={24} color="#FFFFFF" />
-            <Text style={styles.featureText}>
-              Descubre lugares increíbles cerca de ti
-            </Text>
-          </View>
-
-          <View style={styles.feature}>
-            <Icon name="shield-checkmark" size={24} color="#FFFFFF" />
-            <Text style={styles.featureText}>
-              Información de seguridad en tiempo real
-            </Text>
-          </View>
-
-          <View style={styles.feature}>
-            <Icon name="sparkles" size={24} color="#FFFFFF" />
-            <Text style={styles.featureText}>
-              Recomendaciones personalizadas para ti
-            </Text>
-          </View>
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Responde unas preguntas para personalizar tu experiencia
+          </Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate('InterestsOnboarding')}
+          >
+            <Text style={styles.buttonText}>Comenzar</Text>
+            <Icon name="arrow-forward" size={20} color="#007AFF" />
+          </TouchableOpacity>
         </View>
-      </View>
-
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          Responde unas preguntas para personalizar tu experiencia
-        </Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('InterestsOnboarding')}
-        >
-          <Text style={styles.buttonText}>Comenzar</Text>
-          <Icon name="arrow-forward" size={20} color="#007AFF" />
-        </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  safeArea: {
     flex: 1,
   },
   content: {
@@ -79,13 +90,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   iconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 32,
+    padding: 20,
+  },
+  logo: {
+    width: '100%',
+    height: '100%',
   },
   title: {
     fontSize: 32,
@@ -118,7 +134,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 32,
-    paddingBottom: 48,
+    paddingBottom: 20,
   },
   footerText: {
     fontSize: 14,

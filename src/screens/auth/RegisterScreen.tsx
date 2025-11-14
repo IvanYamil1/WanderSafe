@@ -10,6 +10,7 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useAuthStore } from '@store/useAuthStore';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -42,9 +43,14 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     try {
       await signUp(email, password, fullName);
       Alert.alert(
-        'Éxito',
-        'Tu cuenta ha sido creada exitosamente',
-        [{ text: 'OK' }]
+        'Verifica tu correo',
+        'Te hemos enviado un correo de verificación. Por favor revisa tu bandeja de entrada y confirma tu cuenta antes de iniciar sesión.',
+        [
+          {
+            text: 'Entendido',
+            onPress: () => navigation.navigate('Login'),
+          },
+        ]
       );
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Error al crear la cuenta');
@@ -70,7 +76,13 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           >
             <Icon name="arrow-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Icon name="person-add" size={60} color="#FFFFFF" />
+          <View style={styles.logoContainer}>
+            <Image
+              source={require('../../../WanderSafe_Logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
           <Text style={styles.title}>Crear Cuenta</Text>
           <Text style={styles.subtitle}>Únete a WanderSafe hoy</Text>
         </LinearGradient>
@@ -182,6 +194,19 @@ const styles = StyleSheet.create({
     left: 20,
     top: 60,
     zIndex: 1,
+  },
+  logoContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 12,
+  },
+  logo: {
+    width: '100%',
+    height: '100%',
   },
   title: {
     fontSize: 28,

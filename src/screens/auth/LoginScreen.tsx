@@ -7,6 +7,7 @@ import {
   Platform,
   ScrollView,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { useAuthStore } from '@store/useAuthStore';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -55,7 +56,11 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           style={styles.header}
         >
           <View style={styles.logoContainer}>
-            <Icon name="compass" size={80} color={colors.neutral[0]} />
+            <Image
+              source={require('../../../WanderSafe_Logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </View>
           <Text variant="displaySmall" color="inverse" style={styles.title}>
             WanderSafe
@@ -162,10 +167,15 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: radius.full,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing[4],
+    padding: spacing[3],
+  },
+  logo: {
+    width: '100%',
+    height: '100%',
   },
   title: {
     marginTop: spacing[4],

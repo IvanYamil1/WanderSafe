@@ -23,7 +23,7 @@ const CompleteOnboardingScreen: React.FC<CompleteOnboardingScreenProps> = ({
   route,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { updateProfile } = useAuthStore();
+  const { updateProfile, loadUser } = useAuthStore();
   const { interests, budget } = route.params as {
     interests: TouristInterest[];
     budget: BudgetLevel;
@@ -39,14 +39,13 @@ const CompleteOnboardingScreen: React.FC<CompleteOnboardingScreenProps> = ({
         language: 'es',
       });
 
-      // Reset navigation to Main screen
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Main' }],
-      });
+      // Reload user to trigger AppNavigator re-evaluation
+      // AppNavigator will detect the profile is complete and navigate to Main
+      await loadUser();
+
+      setIsLoading(false);
     } catch (error: any) {
       Alert.alert('Error', error.message || 'No se pudo guardar tu configuración');
-    } finally {
       setIsLoading(false);
     }
   };
