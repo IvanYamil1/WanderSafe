@@ -36,7 +36,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (data.user) {
         const profile = await DatabaseService.getUserProfile(data.user.id);
         set({
-          user: data.user as User,
+          user: {
+            id: data.user.id,
+            email: data.user.email || '',
+            full_name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || 'Usuario',
+            avatar_url: data.user.user_metadata?.avatar_url,
+            created_at: data.user.created_at,
+            updated_at: data.user.updated_at || data.user.created_at,
+          } as User,
           profile,
           isAuthenticated: true,
           isLoading: false,
@@ -64,7 +71,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const profile = await DatabaseService.getUserProfile(data.user.id);
 
         set({
-          user: data.user as User,
+          user: {
+            id: data.user.id,
+            email: data.user.email || '',
+            full_name: data.user.user_metadata?.full_name || fullName || data.user.email?.split('@')[0] || 'Usuario',
+            avatar_url: data.user.user_metadata?.avatar_url,
+            created_at: data.user.created_at,
+            updated_at: data.user.updated_at || data.user.created_at,
+          } as User,
           profile,
           isAuthenticated: true,
           isLoading: false,
@@ -135,7 +149,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (user) {
         const profile = await DatabaseService.getUserProfile(user.id);
         set({
-          user: user as User,
+          user: {
+            id: user.id,
+            email: user.email || '',
+            full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario',
+            avatar_url: user.user_metadata?.avatar_url,
+            created_at: user.created_at,
+            updated_at: user.updated_at || user.created_at,
+          } as User,
           profile,
           isAuthenticated: true,
           isLoading: false,

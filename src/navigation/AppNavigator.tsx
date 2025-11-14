@@ -4,12 +4,13 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useAuthStore } from '@store/useAuthStore';
 import AuthNavigator from './AuthNavigator';
 import MainNavigator from './MainNavigator';
+import OnboardingNavigator from './OnboardingNavigator';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 
 const Stack = createStackNavigator();
 
 const AppNavigator: React.FC = () => {
-  const { isAuthenticated, isLoading, loadUser } = useAuthStore();
+  const { isAuthenticated, isLoading, loadUser, profile } = useAuthStore();
 
   useEffect(() => {
     loadUser();
@@ -23,13 +24,18 @@ const AppNavigator: React.FC = () => {
     );
   }
 
+  const needsOnboarding = isAuthenticated && profile &&
+    (!profile.interests || profile.interests.length === 0);
+
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isAuthenticated ? (
-          <Stack.Screen name="Main" component={MainNavigator} />
-        ) : (
+        {!isAuthenticated ? (
           <Stack.Screen name="Auth" component={AuthNavigator} />
+        ) : needsOnboarding ? (
+          <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
+        ) : (
+          <Stack.Screen name="Main" component={MainNavigator} />
         )}
       </Stack.Navigator>
     </NavigationContainer>

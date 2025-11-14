@@ -238,9 +238,11 @@ export type RootStackParamList = {
   Auth: undefined;
   Login: undefined;
   Register: undefined;
+  Onboarding: undefined;
   Main: undefined;
   PlaceDetails: { placeId: string };
   EditProfile: undefined;
+  EditPreferences: undefined;
   CreateReview: { placeId: string };
   EventDetails: { eventId: string };
   RouteOptimizer: undefined;

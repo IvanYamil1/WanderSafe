@@ -5,13 +5,16 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import MapView, { Circle, PROVIDER_GOOGLE } from 'react-native-maps';
 import { DatabaseService } from '@services/supabase/database';
+import { useLocationStore } from '@store/useLocationStore';
 import { SafetyZone } from 'types';
 import { Ionicons as Icon } from '@expo/vector-icons';
 
 const SafetyMapScreen: React.FC = () => {
   const [safetyZones, setSafetyZones] = useState<SafetyZone[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { currentLocation } = useLocationStore();
 
   useEffect(() => {
     loadSafetyZones();
@@ -48,18 +51,41 @@ const SafetyMapScreen: React.FC = () => {
     return labels[level] || 'Desconocido';
   };
 
+  const initialRegion = currentLocation ? {
+    latitude: currentLocation.latitude,
+    longitude: currentLocation.longitude,
+    latitudeDelta: 0.05,
+    longitudeDelta: 0.05,
+  } : {
+    latitude: -12.046374, // Lima, Peru default
+    longitude: -77.042793,
+    latitudeDelta: 0.05,
+    longitudeDelta: 0.05,
+  };
+
   return (
     <View style={styles.container}>
-      {/* Map placeholder - In production, use react-native-maps */}
-      <View style={styles.mapPlaceholder}>
-        <Icon name="map" size={80} color="#C7C7CC" />
-        <Text style={styles.placeholderText}>
-          Mapa de seguridad por zonas
-        </Text>
-        <Text style={styles.placeholderSubtext}>
-          Integración con Google Maps en desarrollo
-        </Text>
-      </View>
+      <MapView
+        provider={PROVIDER_GOOGLE}
+        style={styles.map}
+        initialRegion={initialRegion}
+        showsUserLocation
+        showsMyLocationButton
+      >
+        {safetyZones.map((zone) => (
+          <Circle
+            key={zone.id}
+            center={{
+              latitude: zone.latitude,
+              longitude: zone.longitude,
+            }}
+            radius={zone.radius}
+            fillColor={`${getSafetyColor(zone.safety_level)}33`}
+            strokeColor={getSafetyColor(zone.safety_level)}
+            strokeWidth={2}
+          />
+        ))}
+      </MapView>
 
       {/* Legend */}
       <View style={styles.legend}>
@@ -95,25 +121,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F2F2F7',
   },
-  mapPlaceholder: {
+  map: {
     flex: 1,
-    backgroundColor: '#E5E5EA',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  placeholderText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#8E8E93',
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  placeholderSubtext: {
-    fontSize: 14,
-    color: '#8E8E93',
-    marginTop: 8,
-    textAlign: 'center',
   },
   legend: {
     backgroundColor: '#FFFFFF',

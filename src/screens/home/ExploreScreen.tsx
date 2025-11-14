@@ -7,6 +7,7 @@ import {
   FlatList,
   TouchableOpacity,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { usePlacesStore } from '@store/usePlacesStore';
 import { Place } from 'types';
 import { Ionicons as Icon } from '@expo/vector-icons';
@@ -42,6 +43,7 @@ const ExploreScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <StatusBar style="dark" translucent backgroundColor="transparent" />
       <View style={styles.header}>
         <Text style={styles.title}>Explorar</Text>
         <View style={styles.searchContainer}>

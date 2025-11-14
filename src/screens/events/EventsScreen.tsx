@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { DatabaseService } from '@services/supabase/database';
 import { Event } from 'types';
 import { Ionicons as Icon } from '@expo/vector-icons';
@@ -70,6 +71,7 @@ const EventsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      <StatusBar style="dark" translucent backgroundColor="transparent" />
       <View style={styles.header}>
         <Text style={styles.title}>Eventos</Text>
         <Text style={styles.subtitle}>

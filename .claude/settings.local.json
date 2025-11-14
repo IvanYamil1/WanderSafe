@@ -6,7 +6,13 @@
       "Bash(npx tsc:*)",
       "Bash(find:*)",
       "Bash(taskkill:*)",
-      "Bash(npx expo install:*)"
+      "Bash(npx expo install:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(cmd.exe //c taskkill //PID 10832 //F)",
+      "Bash(rm:*)",
+      "Bash(cmd.exe //c taskkill //PID 6708 //F)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

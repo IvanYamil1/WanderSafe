@@ -14,6 +14,7 @@ import SafetyMapScreen from '@screens/safety/SafetyMapScreen';
 import RouteOptimizerScreen from '@screens/routes/RouteOptimizerScreen';
 import CreateReviewScreen from '@screens/places/CreateReviewScreen';
 import EditProfileScreen from '@screens/profile/EditProfileScreen';
+import EditPreferencesScreen from '@screens/profile/EditPreferencesScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -79,6 +80,11 @@ const ProfileStack: React.FC = () => {
         name="EditProfile"
         component={EditProfileScreen}
         options={{ title: 'Editar Perfil' }}
+      />
+      <Stack.Screen
+        name="EditPreferences"
+        component={EditPreferencesScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

@@ -8,6 +8,7 @@ import {
   FlatList,
   RefreshControl,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { useLocationStore } from '@store/useLocationStore';
 import { usePlacesStore } from '@store/usePlacesStore';
 import { useAuthStore } from '@store/useAuthStore';
@@ -20,7 +21,7 @@ import { Place } from 'types';
 const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { currentLocation, getCurrentLocation, requestPermissions } = useLocationStore();
   const { recommendations, loadRecommendations, isLoading } = usePlacesStore();
-  const { profile } = useAuthStore();
+  const { user, profile } = useAuthStore();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
@@ -66,13 +67,14 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <StatusBar style="light" translucent backgroundColor="transparent" />
       <LinearGradient
         colors={['#007AFF', '#0051D5']}
         style={styles.header}
       >
         <View style={styles.headerContent}>
           <View>
-            <Text style={styles.greeting}>Hola{profile ? `, ${profile.user_id}` : ''}!</Text>
+            <Text style={styles.greeting}>Hola{user?.full_name ? `, ${user.full_name}` : ''}!</Text>
             <Text style={styles.subtitle}>Descubre lugares increíbles cerca de ti</Text>
           </View>
           <TouchableOpacity
@@ -157,7 +159,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
   },
   header: {
-    paddingTop: 50,
+    paddingTop: 50, // Extra padding for status bar
     paddingBottom: 20,
     paddingHorizontal: 20,
   },

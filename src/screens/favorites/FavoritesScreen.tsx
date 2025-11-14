@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { useFavoritesStore } from '@store/useFavoritesStore';
 import { Ionicons as Icon } from '@expo/vector-icons';
 import PlaceCard from '@components/places/PlaceCard';
@@ -28,6 +29,7 @@ const FavoritesScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <StatusBar style="dark" translucent backgroundColor="transparent" />
       <View style={styles.header}>
         <Text style={styles.title}>Favoritos</Text>
         <Text style={styles.subtitle}>

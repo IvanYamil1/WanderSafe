@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '@store/useAuthStore';
 import { Ionicons as Icon } from '@expo/vector-icons';
 
@@ -38,8 +39,13 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     navigation.navigate('EditProfile');
   };
 
+  const handleEditPreferences = () => {
+    navigation.navigate('EditPreferences');
+  };
+
   return (
     <View style={styles.container}>
+      <StatusBar style="light" translucent backgroundColor="transparent" />
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
@@ -69,21 +75,29 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferencias</Text>
 
-          <View style={styles.menuItem}>
-            <Icon name="globe-outline" size={24} color="#007AFF" />
+          <TouchableOpacity style={styles.menuItem} onPress={handleEditPreferences}>
+            <Icon name="heart-outline" size={24} color="#FF3B30" />
             <Text style={styles.menuText}>
-              Idioma: {profile?.language === 'es' ? 'Español' : 'English'}
+              Intereses ({profile?.interests?.length || 0})
             </Text>
             <Icon name="chevron-forward" size={20} color="#C7C7CC" />
-          </View>
+          </TouchableOpacity>
 
-          <View style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={handleEditPreferences}>
             <Icon name="cash-outline" size={24} color="#34C759" />
             <Text style={styles.menuText}>
               Presupuesto: {profile?.preferred_budget || 'medio'}
             </Text>
             <Icon name="chevron-forward" size={20} color="#C7C7CC" />
-          </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem}>
+            <Icon name="globe-outline" size={24} color="#007AFF" />
+            <Text style={styles.menuText}>
+              Idioma: {profile?.language === 'es' ? 'Español' : 'English'}
+            </Text>
+            <Icon name="chevron-forward" size={20} color="#C7C7CC" />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
@@ -119,7 +133,7 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#007AFF',
-    paddingTop: 60,
+    paddingTop: 50, // Extra padding for status bar
     paddingBottom: 32,
     alignItems: 'center',
   },

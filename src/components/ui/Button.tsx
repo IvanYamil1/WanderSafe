@@ -36,21 +36,21 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   ...props
 }) => {
-  const buttonStyles: ViewStyle[] = [
+  const buttonStyles = [
     styles.base,
     styles[variant],
     styles[`size_${size}`],
     fullWidth && styles.fullWidth,
     disabled && styles.disabled,
-    style as ViewStyle,
-  ];
+    style,
+  ].filter(Boolean) as ViewStyle[];
 
-  const textStyles: TextStyle[] = [
+  const textStyles = [
     styles.text,
     styles[`text_${variant}`],
     styles[`text_${size}`],
     disabled && styles.textDisabled,
-  ];
+  ].filter(Boolean) as TextStyle[];
 
   const iconSize = size === 'small' ? 16 : size === 'large' ? 24 : 20;
   const iconColor = variant === 'outline' || variant === 'ghost'
